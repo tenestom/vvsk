@@ -5,10 +5,12 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import QRCode from "react-qr-code"
+import { CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import { submitRegistration } from "@/app/actions/register"
 
 const formSchema = z.object({
   participant_name: z.string().min(2, "Namnet måste vara minst 2 tecken"),
@@ -26,6 +28,8 @@ type FormValues = z.infer<typeof formSchema>
 
 export function RegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const {
     register,
@@ -51,13 +55,39 @@ export function RegistrationForm() {
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
-    // Simulate API call for now (to be implemented in step 8)
-    const price = data.selected_session === "both" ? 1200 : 600
-    console.log("Form data submitted:", { ...data, total_price: price })
-    setTimeout(() => {
+    setSubmitError(null)
+    
+    try {
+      const result = await submitRegistration(data)
+      if (result.success) {
+        setIsSuccess(true)
+      } else {
+        setSubmitError(result.error || "Ett oväntat fel inträffade.")
+      }
+    } catch (err) {
+      setSubmitError("Kunde inte ansluta till servern.")
+    } finally {
       setIsSubmitting(false)
-      alert("Anmälan mottagen (simulering)")
-    }, 1000)
+    }
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-6 py-12 text-center">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+          <CheckCircle2 className="w-10 h-10 text-green-600" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-bold font-heading text-slate-900">Tack för din anmälan!</h2>
+          <p className="text-slate-600 max-w-md mx-auto">
+            Din anmälan för <strong className="text-slate-900">{participantName}</strong> har registrerats. En bekräftelse har skickats till din e-post.
+          </p>
+        </div>
+        <Button onClick={() => window.location.href = "/"} variant="outline" className="mt-8">
+          Tillbaka till startsidan
+        </Button>
+      </div>
+    )
   }
 
   const sessions = [
@@ -82,12 +112,16 @@ export function RegistrationForm() {
   ]
 
   const totalPrice = selectedSession === "both" ? 1200 : selectedSession ? 600 : 0
-  
-  // Format for Swish app URI (simplistic representation for the QR code)
   const swishQrData = `C${"1232752855"};${totalPrice};Anmalan ${participantName || "VVSK"};`
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      {submitError && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-200">
+          {submitError}
+        </div>
+      )}
+
       {/* Participant Info */}
       <div className="space-y-4">
         <h3 className="text-xl font-semibold font-heading text-slate-900 border-b pb-2">Deltagare</h3>
@@ -181,7 +215,6 @@ export function RegistrationForm() {
             </div>
           </div>
 
-          {/* QR Code Section */}
           <div className="shrink-0 flex flex-col items-center justify-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
             <p className="text-sm font-medium mb-3 text-slate-700">Skanna för att swisha</p>
             <div className="bg-white p-2">
