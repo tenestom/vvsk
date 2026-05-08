@@ -14,6 +14,7 @@ import { submitRegistration } from "@/app/actions/register"
 
 const formSchema = z.object({
   participant_name: z.string().min(2, "Namnet måste vara minst 2 tecken"),
+  participant_personnummer: z.string().regex(/^\d{8}-\d{4}$/, "Måste vara i formatet ÅÅÅÅMMDD-XXXX"),
   guardian1_name: z.string().min(2, "Målsmans namn måste vara minst 2 tecken"),
   guardian1_phone: z.string().min(6, "Ogiltigt telefonnummer"),
   guardian2_name: z.string().optional(),
@@ -41,6 +42,7 @@ export function RegistrationForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       participant_name: "",
+      participant_personnummer: "",
       guardian1_name: "",
       guardian1_phone: "",
       guardian2_name: "",
@@ -95,13 +97,13 @@ export function RegistrationForm() {
       id: "session_1",
       title: "Tillfälle 1",
       date: "14–15 juni",
-      price: 600,
+      price: 800,
     },
     {
       id: "session_2",
       title: "Tillfälle 2",
       date: "6–7 juli",
-      price: 600,
+      price: 800,
     },
     {
       id: "both",
@@ -111,7 +113,7 @@ export function RegistrationForm() {
     },
   ]
 
-  const totalPrice = selectedSession === "both" ? 1200 : selectedSession ? 600 : 0
+  const totalPrice = selectedSession === "both" ? 1200 : selectedSession ? 800 : 0
   const swishQrData = `C${"1232752855"};${totalPrice};Anmalan ${participantName || "VVSK"};`
 
   return (
@@ -125,10 +127,17 @@ export function RegistrationForm() {
       {/* Participant Info */}
       <div className="space-y-4">
         <h3 className="text-xl font-semibold font-heading text-slate-900 border-b pb-2">Deltagare</h3>
-        <div className="space-y-2">
-          <Label htmlFor="participant_name">Deltagarens namn *</Label>
-          <Input id="participant_name" placeholder="För- och efternamn" {...register("participant_name")} />
-          {errors.participant_name && <p className="text-sm text-red-500">{errors.participant_name.message}</p>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="participant_name">Deltagarens namn *</Label>
+            <Input id="participant_name" placeholder="För- och efternamn" {...register("participant_name")} />
+            {errors.participant_name && <p className="text-sm text-red-500">{errors.participant_name.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="participant_personnummer">Personnummer *</Label>
+            <Input id="participant_personnummer" placeholder="ÅÅÅÅMMDD-XXXX" {...register("participant_personnummer")} />
+            {errors.participant_personnummer && <p className="text-sm text-red-500">{errors.participant_personnummer.message}</p>}
+          </div>
         </div>
       </div>
 

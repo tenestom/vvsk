@@ -7,6 +7,7 @@ import { sendConfirmationEmail } from "@/lib/email"
 // Re-validate on the server
 const formSchema = z.object({
   participant_name: z.string().min(2),
+  participant_personnummer: z.string().regex(/^\d{8}-\d{4}$/),
   guardian1_name: z.string().min(2),
   guardian1_phone: z.string().min(6),
   guardian2_name: z.string().optional(),
@@ -23,7 +24,7 @@ export async function submitRegistration(data: FormValues) {
     const parsedData = formSchema.parse(data)
     
     // 2. Compute price
-    const totalPrice = parsedData.selected_session === "both" ? 1200 : 600
+    const totalPrice = parsedData.selected_session === "both" ? 1200 : 800
 
     // 3. Connect to database
     const supabase = await createClient()
@@ -31,6 +32,7 @@ export async function submitRegistration(data: FormValues) {
     // 4. Save to database
     const { data: insertedData, error } = await supabase.from("registrations").insert({
       participant_name: parsedData.participant_name,
+      participant_personnummer: parsedData.participant_personnummer,
       guardian1_name: parsedData.guardian1_name,
       guardian1_phone: parsedData.guardian1_phone,
       guardian2_name: parsedData.guardian2_name || null,

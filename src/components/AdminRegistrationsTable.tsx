@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, CheckCircle2, Circle, MailCheck, Mail, Download } from "lucide-react"
+import { Search, CheckCircle2, Circle, MailCheck, Mail, Download, Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { togglePaymentStatus } from "@/app/actions/admin"
@@ -10,6 +10,7 @@ type Registration = {
   id: string
   created_at: string
   participant_name: string
+  participant_personnummer: string
   guardian1_name: string
   guardian1_phone: string
   guardian2_name: string | null
@@ -30,6 +31,16 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
   const [sessionFilter, setSessionFilter] = useState("all")
   const [paymentFilter, setPaymentFilter] = useState("all")
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
+  const [unmasked, setUnmasked] = useState<Record<string, boolean>>({})
+
+  const toggleMask = (id: string) => {
+    setUnmasked(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const maskPersonnummer = (pn: string) => {
+    if (!pn || pn.length < 13) return pn
+    return `${pn.substring(0, 9)}****`
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("sv-SE", {
@@ -71,6 +82,7 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
     const headers = [
       "Datum",
       "Deltagare",
+      "Personnummer",
       "Målsman 1",
       "Telefon 1",
       "Målsman 2",
@@ -93,6 +105,7 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
     const rows = filteredRegistrations.map((reg) => [
       formatDate(reg.created_at),
       reg.participant_name,
+      reg.participant_personnummer,
       reg.guardian1_name,
       reg.guardian1_phone,
       reg.guardian2_name || "",
@@ -169,6 +182,7 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
             <tr>
               <th className="px-6 py-4 font-medium">Datum</th>
               <th className="px-6 py-4 font-medium">Deltagare</th>
+              <th className="px-6 py-4 font-medium">Personnummer</th>
               <th className="px-6 py-4 font-medium">Målsman & E-post</th>
               <th className="px-6 py-4 font-medium">Tillfälle</th>
               <th className="px-6 py-4 font-medium text-right">Pris</th>
@@ -188,6 +202,20 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
                 <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">{formatDate(reg.created_at)}</td>
                   <td className="px-6 py-4 font-medium text-slate-900">{reg.participant_name}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm">
+                        {unmasked[reg.id] ? reg.participant_personnummer : maskPersonnummer(reg.participant_personnummer)}
+                      </span>
+                      <button 
+                        onClick={() => toggleMask(reg.id)}
+                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                        title={unmasked[reg.id] ? "Dölj" : "Visa"}
+                      >
+                        {unmasked[reg.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </td>
                   <td className="px-6 py-4">
                     <div>{reg.guardian1_name} <span className="text-slate-400 text-xs">({reg.guardian1_phone})</span></div>
                     <a href={`mailto:${reg.email}`} className="text-xs text-primary hover:underline">{reg.email}</a>

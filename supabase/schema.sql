@@ -11,11 +11,15 @@ create table public.registrations (
   guardian2_name text,
   guardian2_phone text,
   email text not null,
+  participant_personnummer text not null,
   selected_session text not null,
   total_price integer not null,
   paid boolean default false not null,
   confirmation_sent boolean default false not null
 );
+
+-- Migration snippet to add the column if table already exists:
+-- ALTER TABLE public.registrations ADD COLUMN IF NOT EXISTS participant_personnummer text not null DEFAULT '';
 
 -- Set up Row Level Security (RLS)
 alter table public.registrations enable row level security;

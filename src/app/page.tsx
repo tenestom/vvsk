@@ -62,6 +62,16 @@ export default function Home() {
           </Card>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="w-full py-8 text-center text-slate-500 text-sm border-t border-slate-100 bg-white">
+        <div className="flex flex-col items-center gap-2">
+          <p>© 2026 VVSK. Alla rättigheter förbehållna.</p>
+          <Link href="/integritetspolicy" className="hover:text-primary transition-colors underline underline-offset-4">
+            Integritetspolicy (GDPR)
+          </Link>
+        </div>
+      </footer>
     </main>
   )
 }
