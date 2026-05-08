@@ -26,3 +26,27 @@ export async function togglePaymentStatus(id: string, currentStatus: boolean) {
   revalidatePath("/admin")
   return { success: true }
 }
+
+export async function deleteRegistration(id: string) {
+  const supabase = await createClient()
+  
+  // Verify user is an admin (authenticated)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: "Obehörig" }
+  }
+
+  const { error } = await supabase
+    .from("registrations")
+    .delete()
+    .eq("id", id)
+
+  if (error) {
+    console.error("Error deleting registration:", error)
+    return { success: false, error: "Kunde inte ta bort anmälan." }
+  }
+
+  // Revalidate the admin dashboard so it reflects the new status
+  revalidatePath("/admin")
+  return { success: true }
+}

@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Search, CheckCircle2, Circle, MailCheck, Mail, Download, Eye, EyeOff } from "lucide-react"
+import { Search, CheckCircle2, Circle, MailCheck, Mail, Download, Eye, EyeOff, Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { togglePaymentStatus } from "@/app/actions/admin"
+import { togglePaymentStatus, deleteRegistration } from "@/app/actions/admin"
 
 type Registration = {
   id: string
@@ -188,6 +188,7 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
               <th className="px-6 py-4 font-medium text-right">Pris</th>
               <th className="px-6 py-4 font-medium text-center">Status</th>
               <th className="px-6 py-4 font-medium text-center">Mejl</th>
+              <th className="px-6 py-4 font-medium text-center">Ta bort</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -244,6 +245,21 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
                     ) : (
                        <span title="Ej skickad"><Mail className="w-4 h-4 text-slate-300 mx-auto" /></span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm(`Är du säker på att du vill ta bort ${reg.participant_name}?`)) {
+                          deleteRegistration(reg.id)
+                        }
+                      }}
+                      className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      title="Ta bort anmälan"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </td>
                 </tr>
               ))
