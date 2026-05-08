@@ -1,0 +1,167 @@
+"use client"
+
+import { useState } from "react"
+import { Search, CheckCircle2, Circle, MailCheck, Mail } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { togglePaymentStatus } from "@/app/actions/admin"
+
+type Registration = {
+  id: string
+  created_at: string
+  participant_name: string
+  guardian1_name: string
+  guardian1_phone: string
+  guardian2_name: string | null
+  guardian2_phone: string | null
+  email: string
+  selected_session: string
+  total_price: number
+  paid: boolean
+  confirmation_sent: boolean
+}
+
+interface AdminRegistrationsTableProps {
+  initialRegistrations: Registration[]
+}
+
+export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrationsTableProps) {
+  const [search, setSearch] = useState("")
+  const [sessionFilter, setSessionFilter] = useState("all")
+  const [paymentFilter, setPaymentFilter] = useState("all")
+  const [isUpdating, setIsUpdating] = useState<string | null>(null)
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("sv-SE", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  const sessionLabels: Record<string, string> = {
+    session_1: "Tillfälle 1",
+    session_2: "Tillfälle 2",
+    both: "Båda",
+  }
+
+  const handleTogglePayment = async (id: string, currentStatus: boolean) => {
+    setIsUpdating(id)
+    await togglePaymentStatus(id, currentStatus)
+    setIsUpdating(null)
+  }
+
+  const filteredRegistrations = initialRegistrations.filter((reg) => {
+    // 1. Search Filter
+    const matchesSearch = reg.participant_name.toLowerCase().includes(search.toLowerCase()) || 
+                          reg.guardian1_name.toLowerCase().includes(search.toLowerCase())
+    if (!matchesSearch) return false
+
+    // 2. Session Filter
+    if (sessionFilter !== "all" && reg.selected_session !== sessionFilter) return false
+
+    // 3. Payment Filter
+    if (paymentFilter === "paid" && !reg.paid) return false
+    if (paymentFilter === "unpaid" && reg.paid) return false
+
+    return true
+  })
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-white border-b border-slate-100">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input 
+            placeholder="Sök på deltagare eller målsman..." 
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <select 
+          className="h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          value={sessionFilter}
+          onChange={(e) => setSessionFilter(e.target.value)}
+        >
+          <option value="all">Alla tillfällen</option>
+          <option value="session_1">Tillfälle 1</option>
+          <option value="session_2">Tillfälle 2</option>
+          <option value="both">Båda tillfällena</option>
+        </select>
+        <select 
+          className="h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          value={paymentFilter}
+          onChange={(e) => setPaymentFilter(e.target.value)}
+        >
+          <option value="all">Alla betalstatus</option>
+          <option value="paid">Endast betalda</option>
+          <option value="unpaid">Endast obetalda</option>
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm text-slate-600">
+          <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
+            <tr>
+              <th className="px-6 py-4 font-medium">Datum</th>
+              <th className="px-6 py-4 font-medium">Deltagare</th>
+              <th className="px-6 py-4 font-medium">Målsman & E-post</th>
+              <th className="px-6 py-4 font-medium">Tillfälle</th>
+              <th className="px-6 py-4 font-medium text-right">Pris</th>
+              <th className="px-6 py-4 font-medium text-center">Status</th>
+              <th className="px-6 py-4 font-medium text-center">Mejl</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 bg-white">
+            {filteredRegistrations.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                  Inga anmälningar matchar dina filter.
+                </td>
+              </tr>
+            ) : (
+              filteredRegistrations.map((reg) => (
+                <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">{formatDate(reg.created_at)}</td>
+                  <td className="px-6 py-4 font-medium text-slate-900">{reg.participant_name}</td>
+                  <td className="px-6 py-4">
+                    <div>{reg.guardian1_name} <span className="text-slate-400 text-xs">({reg.guardian1_phone})</span></div>
+                    <a href={`mailto:${reg.email}`} className="text-xs text-primary hover:underline">{reg.email}</a>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {sessionLabels[reg.selected_session] || reg.selected_session}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-medium text-right">{reg.total_price} kr</td>
+                  <td className="px-6 py-4 text-center">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleTogglePayment(reg.id, reg.paid)}
+                      disabled={isUpdating === reg.id}
+                      className={reg.paid ? "text-green-600 hover:text-green-700 hover:bg-green-50" : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"}
+                      title={reg.paid ? "Markera som obetald" : "Markera som betald"}
+                    >
+                      {reg.paid ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+                    </Button>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {reg.confirmation_sent ? (
+                       <MailCheck className="w-4 h-4 text-green-500 mx-auto" title="Bekräftelse skickad" />
+                    ) : (
+                       <Mail className="w-4 h-4 text-slate-300 mx-auto" title="Ej skickad" />
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}

@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Users, CreditCard } from "lucide-react"
+import { AdminRegistrationsTable } from "@/components/AdminRegistrationsTable"
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -23,21 +24,6 @@ export default async function AdminDashboard() {
   const totalParticipants = regs.length
   const expectedRevenue = regs.reduce((sum, r) => sum + r.total_price, 0)
   const paidRevenue = regs.filter(r => r.paid).reduce((sum, r) => sum + r.total_price, 0)
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("sv-SE", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
-
-  const sessionLabels: Record<string, string> = {
-    session_1: "Tillfälle 1",
-    session_2: "Tillfälle 2",
-    both: "Båda",
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-12">
@@ -80,63 +66,10 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Registrations Table */}
-      <Card className="border-0 shadow-soft overflow-hidden">
-        <CardHeader className="bg-white border-b border-slate-100">
-          <CardTitle className="text-xl">Alla anmälningar</CardTitle>
-        </CardHeader>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-xs">
-              <tr>
-                <th className="px-6 py-4 font-medium">Datum</th>
-                <th className="px-6 py-4 font-medium">Deltagare</th>
-                <th className="px-6 py-4 font-medium">Målsman 1</th>
-                <th className="px-6 py-4 font-medium">Tillfälle</th>
-                <th className="px-6 py-4 font-medium">Pris</th>
-                <th className="px-6 py-4 font-medium">Betald</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {regs.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
-                    Inga anmälningar hittades.
-                  </td>
-                </tr>
-              ) : (
-                regs.map((reg) => (
-                  <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(reg.created_at)}</td>
-                    <td className="px-6 py-4 font-medium text-slate-900">{reg.participant_name}</td>
-                    <td className="px-6 py-4">
-                      <div>{reg.guardian1_name}</div>
-                      <div className="text-xs text-slate-400">{reg.guardian1_phone}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {sessionLabels[reg.selected_session] || reg.selected_session}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-medium">{reg.total_price} kr</td>
-                    <td className="px-6 py-4">
-                      {reg.paid ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Ja
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Nej
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      {/* Interactive Registrations Table */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-soft overflow-hidden">
+        <AdminRegistrationsTable initialRegistrations={regs} />
+      </div>
     </div>
   )
 }
