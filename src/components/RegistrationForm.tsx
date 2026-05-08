@@ -19,7 +19,7 @@ const formSchema = z.object({
   guardian2_name: z.string().optional(),
   guardian2_phone: z.string().optional(),
   email: z.string().email("Ogiltig e-postadress"),
-  selected_session: z.enum(["session_1", "session_2", "both"], {
+  selected_session: z.enum(["session_1", "session_2", "session_2_after", "both"], {
     message: "Vänligen välj ett tillfälle",
   }),
 })
@@ -105,6 +105,12 @@ export function RegistrationForm() {
       price: 800,
     },
     {
+      id: "session_2_after",
+      title: "Tillfälle 2 efteranmälan",
+      date: "Vid deltagande i tillfälle 1",
+      price: 400,
+    },
+    {
       id: "both",
       title: "Båda tillfällena",
       date: "Båda datumen ovan",
@@ -112,7 +118,7 @@ export function RegistrationForm() {
     },
   ]
 
-  const totalPrice = selectedSession === "both" ? 1200 : selectedSession ? 800 : 0
+  const totalPrice = selectedSession === "both" ? 1200 : selectedSession === "session_2_after" ? 400 : selectedSession ? 800 : 0
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">

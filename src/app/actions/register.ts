@@ -13,7 +13,7 @@ const formSchema = z.object({
   guardian2_name: z.string().optional(),
   guardian2_phone: z.string().optional(),
   email: z.string().email(),
-  selected_session: z.enum(["session_1", "session_2", "both"]),
+  selected_session: z.enum(["session_1", "session_2", "session_2_after", "both"]),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -24,7 +24,7 @@ export async function submitRegistration(data: FormValues) {
     const parsedData = formSchema.parse(data)
     
     // 2. Compute price
-    const totalPrice = parsedData.selected_session === "both" ? 1200 : 800
+    const totalPrice = parsedData.selected_session === "both" ? 1200 : parsedData.selected_session === "session_2_after" ? 400 : 800
 
     // 3. Connect to database
     const supabase = await createClient()
@@ -53,6 +53,7 @@ export async function submitRegistration(data: FormValues) {
     const sessionTitles: Record<string, string> = {
       "session_1": "Tillfälle 1 (14–15 juni)",
       "session_2": "Tillfälle 2 (6–7 juli)",
+      "session_2_after": "Tillfälle 2 efteranmälan",
       "both": "Båda tillfällena",
     }
     

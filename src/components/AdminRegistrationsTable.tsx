@@ -53,6 +53,7 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
   const sessionLabels: Record<string, string> = {
     session_1: "Tillfälle 1",
     session_2: "Tillfälle 2",
+    session_2_after: "Efteranmälan",
     both: "Båda",
   }
 
