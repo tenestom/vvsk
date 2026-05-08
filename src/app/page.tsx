@@ -8,14 +8,9 @@ export default function Home() {
     <main className="flex-1 flex flex-col min-h-screen bg-background">
       {/* Header/Logo Area */}
       <header className="w-full px-6 py-8 md:px-12 flex justify-between items-center">
-        <div className="flex items-center gap-3 text-primary">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Waves className="w-7 h-7 text-primary" />
-          </div>
+        <div className="flex items-center gap-4 text-primary">
+          <img src="/logo.jpg" alt="VVSK Logotyp" className="h-24 md:h-32 w-auto object-contain rounded-lg" />
           <span className="text-2xl font-bold font-heading tracking-tight text-slate-900">VVSK</span>
-        </div>
-        <div>
-          <img src="/logo.jpg" alt="VVSK Logotyp" className="h-16 w-auto object-contain" />
         </div>
       </header>
 
