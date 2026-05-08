@@ -33,16 +33,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Hero Image Placeholder */}
+        {/* Hero Image */}
         <div className="flex-1 w-full max-w-2xl">
-          <div className="aspect-[4/3] rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden relative shadow-soft flex items-center justify-center group">
-            {/* Soft decorative background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-sky-300/20" />
-            
-            <div className="relative z-10 flex flex-col items-center gap-4 text-slate-400">
-              <Anchor className="w-16 h-16 opacity-50" />
-              <p className="font-medium">Platshållare för hjältebild</p>
-            </div>
+          <div className="aspect-[4/3] rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden relative shadow-soft group">
+            <img src="/turn.jpg" alt="Vattenskidåkare i sväng" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
           </div>
         </div>
       </section>
