@@ -20,10 +20,10 @@ export default function Home() {
       <section className="w-full px-6 md:px-12 py-12 md:py-24 flex flex-col lg:flex-row items-center gap-12 lg:gap-24 max-w-7xl mx-auto">
         <div className="flex-1 space-y-8 text-center lg:text-left">
           <h1 className="text-5xl md:text-7xl font-bold font-heading text-slate-900 leading-[1.1]">
-            Sommarens bästa <span className="text-primary">vattenskidskola</span>
+            Anmälan till VVSK <span className="text-primary">vattenskidskola</span>
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-            Välkommen till VVSK! Vi erbjuder professionell träning för barn och ungdomar i en trygg och rolig miljö. Oavsett om du är nybörjare eller har åkt tidigare, har vi rätt grupp för dig.
+            Välkommen till Vittsjös Vattenskidskola 2026! Använd länken nedan för att anmäla dig. Vi ses i sommar!
           </p>
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
             <Link href="/anmalan" className="w-full sm:w-auto">
