@@ -58,7 +58,7 @@ export default function Home() {
                 <Download className="w-8 h-8 text-primary" />
               </div>
               <div className="flex-1 space-y-3">
-                <h2 className="text-2xl font-bold font-heading text-slate-900">Läs hela inbjudan</h2>
+                <h2 className="text-2xl font-bold font-heading text-slate-900">Ladda ner inbjudan</h2>
                 <p className="text-slate-600">
                   Ladda ner vår officiella inbjudan för att läsa mer om tider, packlista och annan viktig information inför vattenskidskolan.
                 </p>
@@ -66,7 +66,7 @@ export default function Home() {
               <div className="shrink-0 w-full md:w-auto mt-4 md:mt-0">
                 <Button variant="outline" size="lg" className="w-full gap-2">
                   <Download className="w-4 h-4" />
-                  Ladda ner PDF
+                  Ladda ner inbjudan
                 </Button>
               </div>
             </CardContent>
