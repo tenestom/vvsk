@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, CheckCircle2, Circle, MailCheck, Mail } from "lucide-react"
+import { Search, CheckCircle2, Circle, MailCheck, Mail, Download } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { togglePaymentStatus } from "@/app/actions/admin"
@@ -67,38 +67,99 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
     return true
   })
 
+  const exportToCSV = () => {
+    const headers = [
+      "Datum",
+      "Deltagare",
+      "Målsman 1",
+      "Telefon 1",
+      "Målsman 2",
+      "Telefon 2",
+      "E-post",
+      "Tillfälle",
+      "Pris (kr)",
+      "Betald",
+    ]
+
+    const escapeCSV = (value: string | number | null | undefined) => {
+      if (value === null || value === undefined) return ""
+      const stringValue = String(value)
+      if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
+        return `"${stringValue.replace(/"/g, '""')}"`
+      }
+      return stringValue
+    }
+
+    const rows = filteredRegistrations.map((reg) => [
+      formatDate(reg.created_at),
+      reg.participant_name,
+      reg.guardian1_name,
+      reg.guardian1_phone,
+      reg.guardian2_name || "",
+      reg.guardian2_phone || "",
+      reg.email,
+      sessionLabels[reg.selected_session] || reg.selected_session,
+      reg.total_price,
+      reg.paid ? "Ja" : "Nej",
+    ])
+
+    const csvContent = [
+      headers.map(escapeCSV).join(","),
+      ...rows.map(row => row.map(escapeCSV).join(","))
+    ].join("\n")
+
+    // Add UTF-8 BOM so Excel interprets the Swedish characters correctly
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    
+    const link = document.createElement("a")
+    link.href = url
+    const dateStr = new Date().toISOString().split("T")[0]
+    link.setAttribute("download", `vvsk-anmalningar-${dateStr}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-white border-b border-slate-100">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input 
-            placeholder="Sök på deltagare eller målsman..." 
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      {/* Filters & Export */}
+      <div className="flex flex-col lg:flex-row gap-4 p-4 bg-white border-b border-slate-100 items-start lg:items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input 
+              placeholder="Sök på deltagare eller målsman..." 
+              className="pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <select 
+            className="h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            value={sessionFilter}
+            onChange={(e) => setSessionFilter(e.target.value)}
+          >
+            <option value="all">Alla tillfällen</option>
+            <option value="session_1">Tillfälle 1</option>
+            <option value="session_2">Tillfälle 2</option>
+            <option value="both">Båda tillfällena</option>
+          </select>
+          <select 
+            className="h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+          >
+            <option value="all">Alla betalstatus</option>
+            <option value="paid">Endast betalda</option>
+            <option value="unpaid">Endast obetalda</option>
+          </select>
         </div>
-        <select 
-          className="h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          value={sessionFilter}
-          onChange={(e) => setSessionFilter(e.target.value)}
-        >
-          <option value="all">Alla tillfällen</option>
-          <option value="session_1">Tillfälle 1</option>
-          <option value="session_2">Tillfälle 2</option>
-          <option value="both">Båda tillfällena</option>
-        </select>
-        <select 
-          className="h-10 rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          value={paymentFilter}
-          onChange={(e) => setPaymentFilter(e.target.value)}
-        >
-          <option value="all">Alla betalstatus</option>
-          <option value="paid">Endast betalda</option>
-          <option value="unpaid">Endast obetalda</option>
-        </select>
+        
+        <Button onClick={exportToCSV} variant="outline" className="gap-2 w-full lg:w-auto">
+          <Download className="w-4 h-4" />
+          Exportera CSV
+        </Button>
       </div>
 
       {/* Table */}
