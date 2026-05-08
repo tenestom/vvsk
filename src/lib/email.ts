@@ -1,6 +1,12 @@
-import { Resend } from "resend"
+import nodemailer from "nodemailer"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+})
 
 interface EmailData {
   participantName: string
@@ -11,9 +17,9 @@ interface EmailData {
 }
 
 export async function sendConfirmationEmail(data: EmailData) {
-  if (!process.env.RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY is not set. Skipping email send.")
-    return { success: false, error: "API key missing" }
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn("GMAIL_USER or GMAIL_APP_PASSWORD is not set. Skipping email send.")
+    return { success: false, error: "Credentials missing" }
   }
 
   const { participantName, sessionTitle, sessionDate, totalPrice, email } = data
@@ -97,26 +103,21 @@ export async function sendConfirmationEmail(data: EmailData) {
   `
 
   try {
-    console.log(`[Resend] Försöker skicka e-post till ${email} för deltagare ${participantName}`)
+    console.log(`[Gmail] Försöker skicka e-post till ${email} för deltagare ${participantName}`)
     
-    const { data: resendData, error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      replyTo: "tenestromai@gmail.com",
-      to: ["tenestromai@gmail.com"],
-      subject: `Bekräftelse på din anmälan till vattenskidskolan`,
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: "Bekräftelse på din anmälan",
       html: htmlContent,
-    })
-
-    console.log("[Resend] Svar från Resend:", { resendData, error })
-
-    if (error) {
-      console.error("[Resend] Fel från Resend API:", error)
-      return { success: false, error }
     }
 
-    return { success: true, data: resendData }
+    const info = await transporter.sendMail(mailOptions)
+    console.log("[Gmail] Svar från Gmail:", info)
+
+    return { success: true, data: info }
   } catch (err) {
-    console.error("[Resend] Undantag vid sändning av e-post:", err)
+    console.error("[Gmail] Undantag vid sändning av e-post:", err)
     return { success: false, error: err }
   }
 }
