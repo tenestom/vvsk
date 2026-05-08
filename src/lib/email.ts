@@ -89,7 +89,7 @@ export async function sendConfirmationEmail(data: EmailData) {
 
         <!-- Footer -->
         <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 0;">Detta är ett automatiskt mejl som inte kan besvaras.</p>
+          <p style="color: #94a3b8; font-size: 12px; margin: 0;">Med vänliga hälsningar, VVSK</p>
         </div>
       </div>
     </body>
@@ -97,21 +97,26 @@ export async function sendConfirmationEmail(data: EmailData) {
   `
 
   try {
+    console.log(`[Resend] Försöker skicka e-post till ${email} för deltagare ${participantName}`)
+    
     const { data: resendData, error } = await resend.emails.send({
-      from: "VVSK Vattenskidskola <info@vvsk.se>", // This needs to be a verified domain in Resend
+      from: "onboarding@resend.dev",
+      reply_to: "thomas.enestrom@gmail.com",
       to: [email],
       subject: `Bekräftelse på din anmälan till vattenskidskolan`,
       html: htmlContent,
     })
 
+    console.log("[Resend] Svar från Resend:", { resendData, error })
+
     if (error) {
-      console.error("Resend API error:", error)
+      console.error("[Resend] Fel från Resend API:", error)
       return { success: false, error }
     }
 
     return { success: true, data: resendData }
   } catch (err) {
-    console.error("Failed to send email:", err)
+    console.error("[Resend] Undantag vid sändning av e-post:", err)
     return { success: false, error: err }
   }
 }
