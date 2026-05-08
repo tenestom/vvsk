@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import QRCode from "react-qr-code"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -46,11 +47,13 @@ export function RegistrationForm() {
   })
 
   const selectedSession = watch("selected_session")
+  const participantName = watch("participant_name")
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
     // Simulate API call for now (to be implemented in step 8)
-    console.log("Form data submitted:", data)
+    const price = data.selected_session === "both" ? 1200 : 600
+    console.log("Form data submitted:", { ...data, total_price: price })
     setTimeout(() => {
       setIsSubmitting(false)
       alert("Anmälan mottagen (simulering)")
@@ -62,18 +65,26 @@ export function RegistrationForm() {
       id: "session_1",
       title: "Tillfälle 1",
       date: "14–15 juni",
+      price: 600,
     },
     {
       id: "session_2",
       title: "Tillfälle 2",
       date: "6–7 juli",
+      price: 600,
     },
     {
       id: "both",
       title: "Båda tillfällena",
       date: "Båda datumen ovan",
+      price: 1200,
     },
   ]
+
+  const totalPrice = selectedSession === "both" ? 1200 : selectedSession ? 600 : 0
+  
+  // Format for Swish app URI (simplistic representation for the QR code)
+  const swishQrData = `C${"1232752855"};${totalPrice};Anmalan ${participantName || "VVSK"};`
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -130,7 +141,7 @@ export function RegistrationForm() {
               key={session.id}
               onClick={() => setValue("selected_session", session.id as any, { shouldValidate: true })}
               className={cn(
-                "cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-primary/50 text-center",
+                "cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-primary/50 text-center flex flex-col items-center justify-center",
                 selectedSession === session.id
                   ? "border-primary bg-primary/5 shadow-soft"
                   : "border-slate-200 bg-white"
@@ -138,13 +149,49 @@ export function RegistrationForm() {
             >
               <div className="font-semibold text-lg text-slate-900">{session.title}</div>
               <div className="text-sm text-slate-500 mt-1">{session.date}</div>
+              <div className="mt-3 font-medium text-primary bg-primary/10 px-3 py-1 rounded-full text-sm">
+                {session.price} kr
+              </div>
             </div>
           ))}
         </div>
         {errors.selected_session && <p className="text-sm text-red-500">{errors.selected_session.message}</p>}
       </div>
 
-      <Button type="submit" size="lg" className="w-full text-lg" disabled={isSubmitting}>
+      {/* Pricing & Payment Info */}
+      <div className="space-y-4 bg-slate-50 rounded-xl p-6 border border-slate-200">
+        <h3 className="text-xl font-semibold font-heading text-slate-900 border-b border-slate-200 pb-2">Betalningsinformation</h3>
+        
+        <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
+          <div className="space-y-4 flex-1">
+            <div className="flex justify-between items-center text-lg">
+              <span className="text-slate-600">Totalt att betala:</span>
+              <span className="text-3xl font-bold text-slate-900">{totalPrice} kr</span>
+            </div>
+            
+            <div className="space-y-2 pt-4">
+              <p className="font-medium text-slate-900">Betalning sker till:</p>
+              <ul className="space-y-1 text-slate-600">
+                <li><strong className="text-slate-900">Bankgiro:</strong> 5031-4426</li>
+                <li><strong className="text-slate-900">Swish:</strong> 1232752855</li>
+              </ul>
+              <p className="text-sm text-slate-500 italic mt-2">
+                Märk betalningen med deltagarens namn.
+              </p>
+            </div>
+          </div>
+
+          {/* QR Code Section */}
+          <div className="shrink-0 flex flex-col items-center justify-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p className="text-sm font-medium mb-3 text-slate-700">Skanna för att swisha</p>
+            <div className="bg-white p-2">
+              <QRCode value={swishQrData} size={120} level="M" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Button type="submit" size="lg" className="w-full text-lg" disabled={isSubmitting || !selectedSession}>
         {isSubmitting ? "Skickar..." : "Slutför anmälan"}
       </Button>
     </form>
