@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import QRCode from "react-qr-code"
 import { CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -114,7 +113,6 @@ export function RegistrationForm() {
   ]
 
   const totalPrice = selectedSession === "both" ? 1200 : selectedSession ? 800 : 0
-  const swishQrData = `C${"1232752855"};${totalPrice};Anmalan ${participantName || "VVSK"};`
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -221,13 +219,6 @@ export function RegistrationForm() {
               <p className="text-sm text-slate-500 italic mt-2">
                 Märk betalningen med deltagarens namn.
               </p>
-            </div>
-          </div>
-
-          <div className="shrink-0 flex flex-col items-center justify-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <p className="text-sm font-medium mb-3 text-slate-700">Skanna för att swisha</p>
-            <div className="bg-white p-2">
-              <QRCode value={swishQrData} size={120} level="M" />
             </div>
           </div>
         </div>
