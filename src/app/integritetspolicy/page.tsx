@@ -27,7 +27,7 @@ export default function GDPRPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-slate-900 mb-2">2. Varför vi samlar in uppgifterna</h2>
-              <p>Vi använder dina uppgifter uteslutande för att administrera vattenskidskolan. Detta inkluderar hantering av grupper, säkerhet under aktiviteterna samt för att kunna kontakta målsman vid behov eller för att skicka ut viktig information inför tillfällena.</p>
+              <p>Vi använder dina uppgifter uteslutande för att administrera vattenskidskolan och medlemskapet. Detta inkluderar hantering av grupper, försäkring samt för att kunna kontakta målsman vid behov eller för att skicka ut viktig information inför tillfällena.</p>
             </section>
 
             <section>
