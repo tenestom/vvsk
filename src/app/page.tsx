@@ -14,6 +14,9 @@ export default function Home() {
           </div>
           <span className="text-2xl font-bold font-heading tracking-tight text-slate-900">VVSK</span>
         </div>
+        <div>
+          <img src="/logo.jpg" alt="VVSK Logotyp" className="h-16 w-auto object-contain" />
+        </div>
       </header>
 
       {/* Hero Section */}
