@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { z } from "zod"
+import { sendConfirmationEmail } from "@/lib/email"
 
 // Re-validate on the server
 const formSchema = z.object({
@@ -28,7 +29,7 @@ export async function submitRegistration(data: FormValues) {
     const supabase = await createClient()
 
     // 4. Save to database
-    const { error } = await supabase.from("registrations").insert({
+    const { data: insertedData, error } = await supabase.from("registrations").insert({
       participant_name: parsedData.participant_name,
       guardian1_name: parsedData.guardian1_name,
       guardian1_phone: parsedData.guardian1_phone,
@@ -39,11 +40,34 @@ export async function submitRegistration(data: FormValues) {
       total_price: totalPrice,
       paid: false,
       confirmation_sent: false,
-    })
+    }).select().single()
 
-    if (error) {
+    if (error || !insertedData) {
       console.error("Supabase insert error:", error)
       return { success: false, error: "Ett fel uppstod när anmälan skulle sparas. Vänligen försök igen." }
+    }
+
+    // 5. Send confirmation email
+    const sessionTitles: Record<string, string> = {
+      "session_1": "Tillfälle 1 (14–15 juni)",
+      "session_2": "Tillfälle 2 (6–7 juli)",
+      "both": "Båda tillfällena",
+    }
+    
+    const emailResult = await sendConfirmationEmail({
+      participantName: parsedData.participant_name,
+      sessionTitle: sessionTitles[parsedData.selected_session],
+      sessionDate: parsedData.selected_session === "both" ? "Båda datumen" : sessionTitles[parsedData.selected_session],
+      totalPrice: totalPrice,
+      email: parsedData.email,
+    })
+
+    // 6. Update confirmation_sent if email succeeded
+    if (emailResult?.success) {
+      await supabase
+        .from("registrations")
+        .update({ confirmation_sent: true })
+        .eq("id", insertedData.id)
     }
 
     return { success: true }
