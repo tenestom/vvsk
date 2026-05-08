@@ -101,8 +101,8 @@ export async function sendConfirmationEmail(data: EmailData) {
     
     const { data: resendData, error } = await resend.emails.send({
       from: "onboarding@resend.dev",
-      replyTo: "thomas.enestrom@gmail.com",
-      to: [email],
+      replyTo: "tenestromai@gmail.com",
+      to: ["tenestromai@gmail.com"],
       subject: `Bekräftelse på din anmälan till vattenskidskolan`,
       html: htmlContent,
     })

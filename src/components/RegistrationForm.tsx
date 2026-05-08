@@ -81,7 +81,7 @@ export function RegistrationForm() {
         <div className="space-y-2">
           <h2 className="text-3xl font-bold font-heading text-slate-900">Tack för din anmälan!</h2>
           <p className="text-slate-600 max-w-md mx-auto">
-            Din anmälan för <strong className="text-slate-900">{participantName}</strong> har registrerats. En bekräftelse har skickats till din e-post.
+            Din anmälan för <strong className="text-slate-900">{participantName}</strong> har registrerats.
           </p>
         </div>
         <Button onClick={() => window.location.href = "/"} variant="outline" className="mt-8">
