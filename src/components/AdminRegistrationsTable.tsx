@@ -212,9 +212,9 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
                   </td>
                   <td className="px-6 py-4 text-center">
                     {reg.confirmation_sent ? (
-                       <MailCheck className="w-4 h-4 text-green-500 mx-auto" title="Bekräftelse skickad" />
+                       <span title="Bekräftelse skickad"><MailCheck className="w-4 h-4 text-green-500 mx-auto" /></span>
                     ) : (
-                       <Mail className="w-4 h-4 text-slate-300 mx-auto" title="Ej skickad" />
+                       <span title="Ej skickad"><Mail className="w-4 h-4 text-slate-300 mx-auto" /></span>
                     )}
                   </td>
                 </tr>

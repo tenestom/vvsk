@@ -36,4 +36,13 @@ För att sätta upp Supabase:
 ## Vercel Deployment
 
 Detta projekt är optimerat för att driftsättas på Vercel. 
-Anslut ditt GitHub-repository till Vercel och lägg till miljövariablerna i projektinställningarna.
+Anslut ditt GitHub-repository till Vercel. Innan du bygger, se till att lägga in följande miljövariabler under **Settings > Environment Variables**:
+
+| Variabel | Beskrivning |
+| :--- | :--- |
+| \`NEXT_PUBLIC_SUPABASE_URL\` | Din Supabase projekt URL |
+| \`NEXT_PUBLIC_SUPABASE_ANON_KEY\` | Din publika anon key från Supabase |
+| \`SUPABASE_SERVICE_ROLE_KEY\` | Din service role key (används för admin-funktioner) |
+| \`RESEND_API_KEY\` | Din API-nyckel från Resend för att skicka bekräftelsemejl |
+
+Klicka sedan på **Deploy**. Vercel kommer automatiskt att bygga och publicera applikationen.

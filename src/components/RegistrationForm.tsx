@@ -20,7 +20,7 @@ const formSchema = z.object({
   guardian2_phone: z.string().optional(),
   email: z.string().email("Ogiltig e-postadress"),
   selected_session: z.enum(["session_1", "session_2", "both"], {
-    required_error: "Vänligen välj ett tillfälle",
+    message: "Vänligen välj ett tillfälle",
   }),
 })
 
