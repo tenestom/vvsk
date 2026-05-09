@@ -53,10 +53,12 @@ export default function Home() {
                 <h2 className="text-2xl font-bold font-heading text-slate-900">Ladda ner inbjudan</h2>
               </div>
               <div className="shrink-0 w-full md:w-auto mt-4 md:mt-0">
-                <Button variant="outline" size="lg" className="w-full gap-2">
-                  <Download className="w-4 h-4" />
-                  Ladda ner inbjudan
-                </Button>
+                <Link href="/invite.pdf" target="_blank" rel="noopener noreferrer" className="w-full block">
+                  <Button variant="outline" size="lg" className="w-full gap-2">
+                    <Download className="w-4 h-4" />
+                    Ladda ner inbjudan
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
