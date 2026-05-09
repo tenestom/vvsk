@@ -19,7 +19,7 @@ export async function createProduct(data: {
     return { success: false, error: "Obehörig" }
   }
 
-  const { data, error } = await supabase
+  const { data: insertedData, error } = await supabase
     .from("products")
     .insert(data)
     .select()
@@ -31,7 +31,7 @@ export async function createProduct(data: {
   }
 
   revalidatePath("/admin")
-  return { success: true, data }
+  return { success: true, data: insertedData }
 }
 
 export async function updateProduct(id: string, data: {
