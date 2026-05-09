@@ -106,7 +106,7 @@ export async function sendConfirmationEmail(data: EmailData) {
     console.log(`[Gmail] Försöker skicka e-post till ${email} för deltagare ${participantName}`)
     
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: `"VVSK Vattenskidskola" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: "Bekräftelse på din anmälan",
       html: htmlContent,
