@@ -19,14 +19,26 @@ const formSchema = z.object({
   guardian2_name: z.string().optional(),
   guardian2_phone: z.string().optional(),
   email: z.string().email("Ogiltig e-postadress"),
-  selected_session: z.enum(["session_1", "session_2", "session_2_after", "both"], {
-    message: "Vänligen välj ett tillfälle",
-  }),
+  selected_products: z.array(z.string()).min(1, "Vänligen välj minst ett tillfälle"),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
-export function RegistrationForm() {
+type Product = {
+  id: string
+  title: string
+  description: string | null
+  start_date: string | null
+  end_date: string | null
+  price: number
+  active: boolean
+}
+
+interface RegistrationFormProps {
+  products: Product[]
+}
+
+export function RegistrationForm({ products }: RegistrationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -47,12 +59,24 @@ export function RegistrationForm() {
       guardian2_name: "",
       guardian2_phone: "",
       email: "",
-      selected_session: undefined,
+      selected_products: [],
     },
   })
 
-  const selectedSession = watch("selected_session")
+  const selectedProducts = watch("selected_products") || []
   const participantName = watch("participant_name")
+
+  const toggleProduct = (id: string) => {
+    if (selectedProducts.includes(id)) {
+      setValue("selected_products", selectedProducts.filter(p => p !== id), { shouldValidate: true })
+    } else {
+      setValue("selected_products", [...selectedProducts, id], { shouldValidate: true })
+    }
+  }
+
+  const totalPrice = products
+    .filter(p => selectedProducts.includes(p.id))
+    .reduce((sum, p) => sum + p.price, 0)
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
@@ -91,34 +115,7 @@ export function RegistrationForm() {
     )
   }
 
-  const sessions = [
-    {
-      id: "session_1",
-      title: "Tillfälle 1",
-      date: "14–15 juni",
-      price: 800,
-    },
-    {
-      id: "session_2",
-      title: "Tillfälle 2",
-      date: "6–7 juli",
-      price: 800,
-    },
-    {
-      id: "session_2_after",
-      title: "Tillfälle 2 efteranmälan",
-      date: "Vid deltagande i tillfälle 1",
-      price: 400,
-    },
-    {
-      id: "both",
-      title: "Båda tillfällena",
-      date: "Båda datumen ovan",
-      price: 1200,
-    },
-  ]
 
-  const totalPrice = selectedSession === "both" ? 1200 : selectedSession === "session_2_after" ? 400 : selectedSession ? 800 : 0
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -183,26 +180,28 @@ export function RegistrationForm() {
       <div className="space-y-4">
         <h3 className="text-xl font-semibold font-heading text-slate-900 border-b pb-2">Välj tillfälle *</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {sessions.map((session) => (
+          {products.map((product) => (
             <div
-              key={session.id}
-              onClick={() => setValue("selected_session", session.id as any, { shouldValidate: true })}
+              key={product.id}
+              onClick={() => toggleProduct(product.id)}
               className={cn(
                 "cursor-pointer rounded-xl border-2 p-4 transition-all hover:border-primary/50 text-center flex flex-col items-center justify-center",
-                selectedSession === session.id
+                selectedProducts.includes(product.id)
                   ? "border-primary bg-primary/5 shadow-soft"
                   : "border-slate-200 bg-white"
               )}
             >
-              <div className="font-semibold text-lg text-slate-900">{session.title}</div>
-              <div className="text-sm text-slate-500 mt-1">{session.date}</div>
+              <div className="font-semibold text-lg text-slate-900">{product.title}</div>
+              <div className="text-sm text-slate-500 mt-1">
+                {product.start_date ? `${product.start_date} till ${product.end_date}` : ""}
+              </div>
               <div className="mt-3 font-medium text-primary bg-primary/10 px-3 py-1 rounded-full text-sm">
-                {session.price} kr
+                {product.price} kr
               </div>
             </div>
           ))}
         </div>
-        {errors.selected_session && <p className="text-sm text-red-500">{errors.selected_session.message}</p>}
+        {errors.selected_products && <p className="text-sm text-red-500">{errors.selected_products.message}</p>}
       </div>
 
       {/* Pricing & Payment Info */}
@@ -230,7 +229,7 @@ export function RegistrationForm() {
         </div>
       </div>
 
-      <Button type="submit" size="lg" className="w-full text-lg" disabled={isSubmitting || !selectedSession}>
+      <Button type="submit" size="lg" className="w-full text-lg" disabled={isSubmitting || selectedProducts.length === 0}>
         {isSubmitting ? "Skickar..." : "Slutför anmälan"}
       </Button>
     </form>

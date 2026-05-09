@@ -13,6 +13,7 @@ create table public.registrations (
   email text not null,
   participant_personnummer text not null,
   selected_session text not null,
+  selected_products jsonb,
   total_price integer not null,
   paid boolean default false not null,
   confirmation_sent boolean default false not null
@@ -42,3 +43,30 @@ create policy "Authenticated users can update registrations"
 create policy "Authenticated users can delete registrations"
   on public.registrations for delete
   using (auth.role() = 'authenticated');
+
+-- Create the products table
+create table public.products (
+  id uuid primary key default uuid_generate_v4(),
+  title text not null,
+  description text,
+  start_date date,
+  end_date date,
+  price integer not null,
+  active boolean default true not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS
+alter table public.products enable row level security;
+
+-- Policies for products
+-- 1. Anyone can view active products
+create policy "Anyone can view active products"
+  on public.products for select
+  using (active = true);
+
+-- 2. Only authenticated users (admins) can manage products
+create policy "Authenticated users can manage products"
+  on public.products for all
+  using (auth.role() = 'authenticated');
+

@@ -1,7 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { RegistrationForm } from "@/components/RegistrationForm"
+import { createClient } from "@/lib/supabase/server"
 
-export default function AnmalanPage() {
+export default async function AnmalanPage() {
+  const supabase = await createClient()
+  
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("active", true)
+    .order("start_date", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching products:", error)
+  }
+
+  const availableProducts = products || []
+
   return (
     <main className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-50 p-6 md:p-12">
       <div className="w-full max-w-3xl space-y-6">
@@ -12,7 +27,7 @@ export default function AnmalanPage() {
         
         <Card className="w-full shadow-soft border-0">
           <CardContent className="p-6 md:p-8">
-            <RegistrationForm />
+            <RegistrationForm products={availableProducts} />
           </CardContent>
         </Card>
       </div>

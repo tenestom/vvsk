@@ -13,7 +13,7 @@ const formSchema = z.object({
   guardian2_name: z.string().optional(),
   guardian2_phone: z.string().optional(),
   email: z.string().email(),
-  selected_session: z.enum(["session_1", "session_2", "session_2_after", "both"]),
+  selected_products: z.array(z.string()).min(1),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -23,11 +23,30 @@ export async function submitRegistration(data: FormValues) {
     // 1. Server-side validation
     const parsedData = formSchema.parse(data)
     
-    // 2. Compute price
-    const totalPrice = parsedData.selected_session === "both" ? 1200 : parsedData.selected_session === "session_2_after" ? 400 : 800
-
     // 3. Connect to database
     const supabase = await createClient()
+
+    // Fetch selected products to get accurate price and titles
+    const { data: products, error: prodError } = await supabase
+      .from("products")
+      .select("*")
+      .in("id", parsedData.selected_products)
+
+    if (prodError || !products || products.length === 0) {
+      console.error("Error fetching products for registration:", prodError)
+      return { success: false, error: "Kunde inte validera valda produkter." }
+    }
+
+    // Compute price and collect names
+    const totalPrice = products.reduce((sum, p) => sum + p.price, 0)
+    const selectedProductsSnapshot = products.map(p => ({
+      id: p.id,
+      title: p.title,
+      price: p.price
+    }))
+
+    // Legacy support or just use a string summary for the old column
+    const selectedSessionSummary = products.map(p => p.title).join(", ")
 
     // 4. Save to database
     const { data: insertedData, error } = await supabase.from("registrations").insert({
@@ -38,7 +57,8 @@ export async function submitRegistration(data: FormValues) {
       guardian2_name: parsedData.guardian2_name || null,
       guardian2_phone: parsedData.guardian2_phone || null,
       email: parsedData.email,
-      selected_session: parsedData.selected_session,
+      selected_session: selectedSessionSummary, // Fallback for old column
+      selected_products: selectedProductsSnapshot, // New JSONB column
       total_price: totalPrice,
       paid: false,
       confirmation_sent: false,
@@ -50,17 +70,13 @@ export async function submitRegistration(data: FormValues) {
     }
 
     // 5. Send confirmation email
-    const sessionTitles: Record<string, string> = {
-      "session_1": "Tillfälle 1 (14–15 juni)",
-      "session_2": "Tillfälle 2 (6–7 juli)",
-      "session_2_after": "Tillfälle 2 efteranmälan",
-      "both": "Båda tillfällena",
-    }
+    const productTitles = products.map(p => p.title).join(", ")
+    const productDates = products.map(p => p.start_date ? `${p.start_date} till ${p.end_date}` : "Inget datum").join(", ")
     
     const emailResult = await sendConfirmationEmail({
       participantName: parsedData.participant_name,
-      sessionTitle: sessionTitles[parsedData.selected_session],
-      sessionDate: parsedData.selected_session === "both" ? "Båda datumen" : sessionTitles[parsedData.selected_session],
+      sessionTitle: productTitles,
+      sessionDate: productDates,
       totalPrice: totalPrice,
       email: parsedData.email,
     })

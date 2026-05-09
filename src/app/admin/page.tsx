@@ -3,9 +3,14 @@ import { logout } from "@/app/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Users, CreditCard } from "lucide-react"
+import Link from "next/link"
 import { AdminRegistrationsTable } from "@/components/AdminRegistrationsTable"
+import { AdminProductsTable } from "@/components/AdminProductsTable"
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab } = await searchParams
+  const activeTab = tab || "registrations"
+  
   const supabase = await createClient()
 
   // Fetch all registrations
@@ -19,6 +24,18 @@ export default async function AdminDashboard() {
   }
 
   const regs = registrations || []
+
+  // Fetch all products
+  const { data: products, error: prodError } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (prodError) {
+    console.error("Error fetching products:", prodError)
+  }
+
+  const prods = products || []
 
   // Calculate stats
   const totalParticipants = regs.length
@@ -66,9 +83,29 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Interactive Registrations Table */}
+      {/* Tabs */}
+      <div className="flex gap-4 mb-6 border-b border-slate-200">
+        <Link 
+          href="/admin?tab=registrations" 
+          className={`pb-2 px-1 font-medium text-sm ${activeTab === 'registrations' ? 'text-primary border-b-2 border-primary' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Anmälningar
+        </Link>
+        <Link 
+          href="/admin?tab=products" 
+          className={`pb-2 px-1 font-medium text-sm ${activeTab === 'products' ? 'text-primary border-b-2 border-primary' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Produkter / Tillfällen
+        </Link>
+      </div>
+
+      {/* Interactive Content */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-soft overflow-hidden">
-        <AdminRegistrationsTable initialRegistrations={regs} />
+        {activeTab === 'products' ? (
+          <AdminProductsTable initialProducts={prods} />
+        ) : (
+          <AdminRegistrationsTable initialRegistrations={regs} />
+        )}
       </div>
     </div>
   )
