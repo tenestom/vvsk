@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/server"
 import { z } from "zod"
 import { sendConfirmationEmail } from "@/lib/email"
 
@@ -23,8 +23,8 @@ export async function submitRegistration(data: FormValues) {
     // 1. Server-side validation
     const parsedData = formSchema.parse(data)
     
-    // 3. Connect to database
-    const supabase = await createClient()
+    // 3. Connect to database with admin client to bypass RLS for insert/select and update
+    const supabase = createAdminClient()
 
     // Fetch selected products to get accurate price and titles
     const { data: products, error: prodError } = await supabase
