@@ -50,3 +50,27 @@ export async function deleteRegistration(id: string) {
   revalidatePath("/admin")
   return { success: true }
 }
+
+export async function updateRegistration(id: string, data: any) {
+  const supabase = await createClient()
+  
+  // Verify user is an admin (authenticated)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: "Obehörig" }
+  }
+
+  const { error } = await supabase
+    .from("registrations")
+    .update(data)
+    .eq("id", id)
+
+  if (error) {
+    console.error("Error updating registration:", error)
+    return { success: false, error: "Kunde inte uppdatera anmälan." }
+  }
+
+  // Revalidate the admin dashboard so it reflects the new status
+  revalidatePath("/admin")
+  return { success: true }
+}

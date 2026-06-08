@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Search, CheckCircle2, Circle, MailCheck, Mail, Download, Eye, EyeOff, Trash2 } from "lucide-react"
+import { Search, CheckCircle2, Circle, MailCheck, Mail, Download, Eye, EyeOff, Trash2, Pencil, Save, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { togglePaymentStatus, deleteRegistration } from "@/app/actions/admin"
+import { togglePaymentStatus, deleteRegistration, updateRegistration } from "@/app/actions/admin"
 
 type Registration = {
   id: string
@@ -32,6 +32,8 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
   const [paymentFilter, setPaymentFilter] = useState("all")
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
   const [unmasked, setUnmasked] = useState<Record<string, boolean>>({})
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editData, setEditData] = useState<Partial<Registration>>({})
 
   const toggleMask = (id: string) => {
     setUnmasked(prev => ({ ...prev, [id]: !prev[id] }))
@@ -61,6 +63,24 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
     setIsUpdating(id)
     await togglePaymentStatus(id, currentStatus)
     setIsUpdating(null)
+  }
+
+  const startEditing = (reg: Registration) => {
+    setEditingId(reg.id)
+    setEditData(reg)
+  }
+
+  const cancelEditing = () => {
+    setEditingId(null)
+    setEditData({})
+  }
+
+  const saveEdit = async () => {
+    if (!editingId) return
+    setIsUpdating(editingId)
+    await updateRegistration(editingId, editData)
+    setIsUpdating(null)
+    setEditingId(null)
   }
 
   const filteredRegistrations = initialRegistrations.filter((reg) => {
@@ -189,7 +209,7 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
               <th className="px-6 py-4 font-medium text-right">Pris</th>
               <th className="px-6 py-4 font-medium text-center">Status</th>
               <th className="px-6 py-4 font-medium text-center">Mejl</th>
-              <th className="px-6 py-4 font-medium text-center">Ta bort</th>
+              <th className="px-6 py-4 font-medium text-center">Åtgärder</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 bg-white">
@@ -200,34 +220,73 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
                 </td>
               </tr>
             ) : (
-              filteredRegistrations.map((reg) => (
+              filteredRegistrations.map((reg) => {
+                const isEditing = editingId === reg.id;
+                return (
                 <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">{formatDate(reg.created_at)}</td>
-                  <td className="px-6 py-4 font-medium text-slate-900">{reg.participant_name}</td>
+                  <td className="px-6 py-4 font-medium text-slate-900">
+                    {isEditing ? (
+                      <Input value={editData.participant_name || ""} onChange={e => setEditData({...editData, participant_name: e.target.value})} className="w-full text-sm h-8" />
+                    ) : reg.participant_name}
+                  </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm">
-                        {unmasked[reg.id] ? reg.participant_personnummer : maskPersonnummer(reg.participant_personnummer)}
-                      </span>
-                      <button 
-                        onClick={() => toggleMask(reg.id)}
-                        className="text-slate-400 hover:text-slate-600 transition-colors"
-                        title={unmasked[reg.id] ? "Dölj" : "Visa"}
+                    {isEditing ? (
+                      <Input value={editData.participant_personnummer || ""} onChange={e => setEditData({...editData, participant_personnummer: e.target.value})} className="w-full text-sm h-8 font-mono" />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm">
+                          {unmasked[reg.id] ? reg.participant_personnummer : maskPersonnummer(reg.participant_personnummer)}
+                        </span>
+                        <button 
+                          onClick={() => toggleMask(reg.id)}
+                          className="text-slate-400 hover:text-slate-600 transition-colors"
+                          title={unmasked[reg.id] ? "Dölj" : "Visa"}
+                        >
+                          {unmasked[reg.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {isEditing ? (
+                      <div className="flex flex-col gap-1">
+                        <Input value={editData.guardian1_name || ""} onChange={e => setEditData({...editData, guardian1_name: e.target.value})} placeholder="Namn" className="text-sm h-8" />
+                        <Input value={editData.guardian1_phone || ""} onChange={e => setEditData({...editData, guardian1_phone: e.target.value})} placeholder="Telefon" className="text-sm h-8" />
+                        <Input value={editData.email || ""} onChange={e => setEditData({...editData, email: e.target.value})} placeholder="E-post" className="text-sm h-8" />
+                      </div>
+                    ) : (
+                      <>
+                        <div>{reg.guardian1_name} <span className="text-slate-400 text-xs">({reg.guardian1_phone})</span></div>
+                        <a href={`mailto:${reg.email}`} className="text-xs text-primary hover:underline">{reg.email}</a>
+                      </>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {isEditing ? (
+                      <select 
+                        className="w-full text-sm h-8 rounded-md border border-slate-300"
+                        value={editData.selected_session || ""}
+                        onChange={e => setEditData({...editData, selected_session: e.target.value})}
                       >
-                        {unmasked[reg.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
+                        <option value="session_1">Tillfälle 1</option>
+                        <option value="session_2">Tillfälle 2</option>
+                        <option value="session_2_after">Efteranmälan</option>
+                        <option value="both">Båda</option>
+                      </select>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {sessionLabels[reg.selected_session] || reg.selected_session}
+                      </span>
+                    )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div>{reg.guardian1_name} <span className="text-slate-400 text-xs">({reg.guardian1_phone})</span></div>
-                    <a href={`mailto:${reg.email}`} className="text-xs text-primary hover:underline">{reg.email}</a>
+                  <td className="px-6 py-4 font-medium text-right">
+                    {isEditing ? (
+                      <Input type="number" value={editData.total_price || 0} onChange={e => setEditData({...editData, total_price: parseInt(e.target.value) || 0})} className="w-full text-sm h-8 text-right" />
+                    ) : (
+                      `${reg.total_price} kr`
+                    )}
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {sessionLabels[reg.selected_session] || reg.selected_session}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-medium text-right">{reg.total_price} kr</td>
                   <td className="px-6 py-4 text-center">
                     <Button 
                       variant="ghost" 
@@ -248,22 +307,38 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        if (window.confirm(`Är du säker på att du vill ta bort ${reg.participant_name}?`)) {
-                          deleteRegistration(reg.id)
-                        }
-                      }}
-                      className="text-slate-400 hover:text-red-600 hover:bg-red-50"
-                      title="Ta bort anmälan"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isEditing ? (
+                      <div className="flex justify-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={saveEdit} disabled={isUpdating === reg.id} className="text-green-600 hover:text-green-700 hover:bg-green-50" title="Spara">
+                          <Save className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={isUpdating === reg.id} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100" title="Avbryt">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => startEditing(reg)} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50" title="Redigera">
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            if (window.confirm(`Är du säker på att du vill ta bort ${reg.participant_name}?`)) {
+                              deleteRegistration(reg.id)
+                            }
+                          }}
+                          className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                          title="Ta bort anmälan"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </td>
                 </tr>
-              ))
+              )})
             )}
           </tbody>
         </table>
