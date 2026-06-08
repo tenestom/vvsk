@@ -267,7 +267,15 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
                       <select 
                         className="w-full text-sm h-8 rounded-md border border-slate-300"
                         value={editData.selected_session || ""}
-                        onChange={e => setEditData({...editData, selected_session: e.target.value})}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setEditData(prev => {
+                            let newPrice = prev.total_price;
+                            if (val === "both") newPrice = 1200;
+                            else if (prev.selected_session === "both" && val !== "both") newPrice = 600;
+                            return { ...prev, selected_session: val, total_price: newPrice };
+                          });
+                        }}
                       >
                         <option value="session_1">Tillfälle 1</option>
                         <option value="session_2">Tillfälle 2</option>
