@@ -207,7 +207,7 @@ export function AdminRegistrationsTable({ initialRegistrations }: AdminRegistrat
               <th className="px-6 py-4 font-medium">Målsman & E-post</th>
               <th className="px-6 py-4 font-medium">Tillfälle</th>
               <th className="px-6 py-4 font-medium text-right">Pris</th>
-              <th className="px-6 py-4 font-medium text-center">Status</th>
+              <th className="px-6 py-4 font-medium text-center">Betalt</th>
               <th className="px-6 py-4 font-medium text-center">Mejl</th>
               <th className="px-6 py-4 font-medium text-center">Åtgärder</th>
             </tr>
