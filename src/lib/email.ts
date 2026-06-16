@@ -121,3 +121,43 @@ export async function sendConfirmationEmail(data: EmailData) {
     return { success: false, error: err }
   }
 }
+
+export async function sendLokEmail(date: string, attendees: {name: string, role: string}[]) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn("GMAIL_USER or GMAIL_APP_PASSWORD is not set. Skipping email send.")
+    return { success: false, error: "Credentials missing" }
+  }
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="sv">
+    <head>
+      <meta charset="UTF-8">
+      <title>LOK-närvaro registrerad</title>
+    </head>
+    <body style="font-family: sans-serif;">
+      <h2>LOK-närvaro registrerad för ${date}</h2>
+      <p>Följande medlemmar var närvarande:</p>
+      <ul>
+        ${attendees.map(a => `<li>${a.name} (${a.role})</li>`).join("")}
+      </ul>
+    </body>
+    </html>
+  `
+
+  try {
+    const mailOptions = {
+      from: `"VVSK LOK-system" <${process.env.GMAIL_USER}>`,
+      to: "sara.bjorkqvist@hotmail.com",
+      subject: `LOK-närvaro ${date}`,
+      html: htmlContent,
+    }
+
+    const info = await transporter.sendMail(mailOptions)
+    console.log("[Gmail] LOK-email skickat:", info)
+    return { success: true, data: info }
+  } catch (err) {
+    console.error("[Gmail] Fel vid sändning av LOK-email:", err)
+    return { success: false, error: err }
+  }
+}

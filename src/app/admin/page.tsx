@@ -6,6 +6,7 @@ import { Users, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { AdminRegistrationsTable } from "@/components/AdminRegistrationsTable"
 import { AdminProductsTable } from "@/components/AdminProductsTable"
+import { AdminMembers } from "@/components/AdminMembers"
 
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab } = await searchParams
@@ -36,6 +37,27 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   }
 
   const prods = products || []
+
+  // Fetch members
+  const { data: members, error: memError } = await supabase
+    .from("members")
+    .select("*")
+    .order("name", { ascending: true })
+
+  if (memError) {
+    console.error("Error fetching members:", memError)
+  }
+  const mems = members || []
+
+  // Fetch attendance
+  const { data: attendance, error: attError } = await supabase
+    .from("lok_attendance")
+    .select("*")
+
+  if (attError) {
+    console.error("Error fetching attendance:", attError)
+  }
+  const atts = attendance || []
 
   // Calculate stats
   const totalParticipants = regs.length
@@ -97,11 +119,19 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         >
           Produkter / Tillfällen
         </Link>
+        <Link 
+          href="/admin?tab=members" 
+          className={`pb-2 px-1 font-medium text-sm ${activeTab === 'members' ? 'text-primary border-b-2 border-primary' : 'text-slate-500 hover:text-slate-700'}`}
+        >
+          Medlemmar (LOK)
+        </Link>
       </div>
 
       {/* Interactive Content */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-soft overflow-hidden">
-        {activeTab === 'products' ? (
+        {activeTab === 'members' ? (
+          <AdminMembers initialMembers={mems} initialAttendance={atts} />
+        ) : activeTab === 'products' ? (
           <AdminProductsTable initialProducts={prods} />
         ) : (
           <AdminRegistrationsTable initialRegistrations={regs} />

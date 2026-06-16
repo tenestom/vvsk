@@ -18,8 +18,11 @@ export default function Home() {
       <section className="w-full px-6 md:px-12 py-12 md:py-24 flex flex-col lg:flex-row items-center gap-12 lg:gap-24 max-w-7xl mx-auto">
         <div className="flex-1 space-y-8 text-center lg:text-left">
           <h1 className="text-5xl md:text-7xl font-bold font-heading text-slate-900 leading-[1.1]">
-            Anmälan till VVSK <span className="text-primary">vattenskidskola</span>
+            Vittsjö <span className="text-primary">vattenskidklubb</span>
           </h1>
+          <h2 className="text-2xl md:text-3xl font-semibold text-slate-700">
+            Anmälan till VVSK vattenskidskola
+          </h2>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
             Välkommen till Vittsjös Vattenskidskola 2026! Använd länken nedan för att anmäla dig. Vi ses i sommar!
           </p>
@@ -28,6 +31,11 @@ export default function Home() {
               <Button size="lg" className="w-full text-lg h-14 px-8 gap-2 group">
                 Anmäl dig här
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="/lok" className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full text-lg h-14 px-8 gap-2">
+                Lok-anmälningar
               </Button>
             </Link>
           </div>
