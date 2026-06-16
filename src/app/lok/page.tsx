@@ -18,6 +18,16 @@ export default async function LokPage() {
 
   const mems = members || []
 
+  const { data: attendance, error: attError } = await supabase
+    .from("lok_attendance")
+    .select("*")
+
+  if (attError) {
+    console.error("Error fetching attendance for LOK:", attError)
+  }
+
+  const atts = attendance || []
+
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-12">
       <header className="max-w-3xl mx-auto mb-8">
@@ -33,7 +43,7 @@ export default async function LokPage() {
         <p className="text-slate-500 mt-1">Registrera närvaro för LOK-stöd.</p>
       </header>
 
-      <LokAttendanceForm members={mems} />
+      <LokAttendanceForm members={mems} initialAttendance={atts} />
     </div>
   )
 }

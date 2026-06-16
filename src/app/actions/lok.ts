@@ -4,18 +4,23 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { sendLokEmail } from "@/lib/email"
 
-export async function registerLokAttendance(date: string, memberIds: string[]) {
+export async function registerLokAttendance(date: string, memberIds: string[], newlyAddedIds: string[] = []) {
   const supabase = await createClient()
 
-  // Find attendees data to include in email
-  const { data: members, error: memError } = await supabase
-    .from("members")
-    .select("*")
-    .in("id", memberIds)
+  // Find attendees data to include in email (only the newly added ones!)
+  const emailMemberIds = newlyAddedIds.length > 0 ? newlyAddedIds : []
+  let members: any[] | null = null
+  if (emailMemberIds.length > 0) {
+    const { data, error: memError } = await supabase
+      .from("members")
+      .select("*")
+      .in("id", emailMemberIds)
 
-  if (memError) {
-    console.error("Error fetching members for email:", memError)
-    return { success: false, error: "Kunde inte hämta medlemmar." }
+    if (memError) {
+      console.error("Error fetching members for email:", memError)
+      return { success: false, error: "Kunde inte hämta medlemmar." }
+    }
+    members = data
   }
 
   // Delete previous attendance for this date (if we want to replace it)

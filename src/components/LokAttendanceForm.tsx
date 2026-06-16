@@ -1,21 +1,36 @@
 "use client"
 
-import { useState } from "react"
-import { Calendar as CalendarIcon, CheckSquare, Square, Save } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { Calendar as CalendarIcon, CheckSquare, Square, Save, CheckCircle2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { registerLokAttendance } from "@/app/actions/lok"
-import { Member } from "@/components/AdminMembers"
+import { Member, LokAttendance } from "@/components/AdminMembers"
 
 interface LokAttendanceFormProps {
   members: Member[]
+  initialAttendance?: LokAttendance[]
 }
 
-export function LokAttendanceForm({ members }: LokAttendanceFormProps) {
+export function LokAttendanceForm({ members, initialAttendance = [] }: LokAttendanceFormProps) {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [attendedIds, setAttendedIds] = useState<Set<string>>(new Set())
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
+
+  // Compute who is already registered for the selected date
+  const alreadyRegisteredIds = useMemo(() => {
+    return new Set(
+      initialAttendance
+        .filter(a => a.date === selectedDate)
+        .map(a => a.member_id)
+    )
+  }, [initialAttendance, selectedDate])
+
+  // Sync attendedIds with alreadyRegisteredIds when date changes
+  useEffect(() => {
+    setAttendedIds(new Set(alreadyRegisteredIds))
+  }, [selectedDate, alreadyRegisteredIds])
 
   const toggleAttendance = (id: string) => {
     setAttendedIds(prev => {
@@ -33,11 +48,18 @@ export function LokAttendanceForm({ members }: LokAttendanceFormProps) {
     setIsSubmitting(true)
     setSuccessMessage("")
     
-    const result = await registerLokAttendance(selectedDate, Array.from(attendedIds))
+    // Only send email for newly checked members
+    const newlyAddedIds = Array.from(attendedIds).filter(id => !alreadyRegisteredIds.has(id))
+    
+    const result = await registerLokAttendance(selectedDate, Array.from(attendedIds), newlyAddedIds)
     
     if (result.success) {
-      setSuccessMessage("Närvaro registrerad! Ett mejl har skickats till Sara.")
-      // Reset after 3 seconds
+      if (newlyAddedIds.length > 0) {
+        setSuccessMessage("Närvaro registrerad! Ett mejl har skickats till Sara.")
+      } else {
+        setSuccessMessage("Närvaro uppdaterad!")
+      }
+      // Reset message
       setTimeout(() => setSuccessMessage(""), 3000)
     } else {
       alert("Ett fel inträffade när närvaron skulle sparas.")
@@ -73,24 +95,35 @@ export function LokAttendanceForm({ members }: LokAttendanceFormProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {members.map(member => {
               const isPresent = attendedIds.has(member.id)
+              const isSaved = alreadyRegisteredIds.has(member.id)
+              
+              let btnClass = 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700'
+              if (isSaved && isPresent) {
+                // Already registered and still checked
+                btnClass = 'border-emerald-600 bg-emerald-600 text-white shadow-sm'
+              } else if (isPresent) {
+                // Newly checked (not saved yet)
+                btnClass = 'border-green-500 bg-green-50 text-green-900'
+              }
+              
               return (
                 <button
                   key={member.id}
                   onClick={() => toggleAttendance(member.id)}
-                  className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                    isPresent 
-                      ? 'border-green-500 bg-green-50 text-green-900' 
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700'
-                  }`}
+                  className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${btnClass}`}
                 >
-                  {isPresent ? (
-                    <CheckSquare className="w-5 h-5 text-green-500 shrink-0" />
+                  {isSaved && isPresent ? (
+                    <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
+                  ) : isPresent ? (
+                    <CheckSquare className="w-5 h-5 text-green-600 shrink-0" />
                   ) : (
                     <Square className="w-5 h-5 text-slate-300 shrink-0" />
                   )}
                   <div className="truncate">
                     <div className="font-medium truncate">{member.name}</div>
-                    <div className="text-xs opacity-70 capitalize">{member.role}</div>
+                    <div className={`text-xs capitalize ${isSaved && isPresent ? 'text-emerald-100' : 'opacity-70'}`}>
+                      {member.role}
+                    </div>
                   </div>
                 </button>
               )
@@ -122,7 +155,7 @@ export function LokAttendanceForm({ members }: LokAttendanceFormProps) {
               className="gap-2 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
-              {isSubmitting ? "Registrerar..." : "Registrera Närvaro"}
+              {isSubmitting ? "Sparar..." : "Spara Närvaro"}
             </Button>
           </div>
         </div>
