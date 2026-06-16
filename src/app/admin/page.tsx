@@ -68,8 +68,12 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     <div className="min-h-screen bg-slate-50 p-6 md:p-12">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-heading text-slate-900">Admin Dashboard</h1>
-          <p className="text-slate-500 mt-1">Översikt över anmälningar till vattenskidskolan.</p>
+          <h1 className="text-3xl font-bold font-heading text-slate-900">
+            {activeTab === 'members' ? 'Medlemsregister' : 'Admin Dashboard'}
+          </h1>
+          <p className="text-slate-500 mt-1">
+            {activeTab === 'members' ? 'Hantera medlemmar och LOK-närvaro.' : 'Översikt över anmälningar till vattenskidskolan.'}
+          </p>
         </div>
         <form action={logout}>
           <Button variant="outline" type="submit">Logga ut</Button>
@@ -77,33 +81,35 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       </header>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-full text-primary">
-              <Users className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Totalt antal deltagare</p>
-              <h2 className="text-3xl font-bold text-slate-900">{totalParticipants}</h2>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-green-100 rounded-full text-green-600">
-              <CreditCard className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-500">Förväntad intäkt (Betalt)</p>
-              <h2 className="text-3xl font-bold text-slate-900">
-                {expectedRevenue} kr <span className="text-sm font-normal text-slate-500">({paidRevenue} kr inbetalt)</span>
-              </h2>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {activeTab !== 'members' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card className="border-0 shadow-soft">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-full text-primary">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500">Totalt antal deltagare</p>
+                <h2 className="text-3xl font-bold text-slate-900">{totalParticipants}</h2>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-soft">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="p-3 bg-green-100 rounded-full text-green-600">
+                <CreditCard className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500">Förväntad intäkt (Betalt)</p>
+                <h2 className="text-3xl font-bold text-slate-900">
+                  {expectedRevenue} kr <span className="text-sm font-normal text-slate-500">({paidRevenue} kr inbetalt)</span>
+                </h2>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b border-slate-200">

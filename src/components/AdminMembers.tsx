@@ -121,7 +121,7 @@ export function AdminMembers({ initialMembers, initialAttendance }: AdminMembers
               onChange={(e) => setNewRole(e.target.value)}
             >
               <option value="åkare">Åkare</option>
-              <option value="skidåkare">Skidåkare</option>
+              <option value="båtförare">Båtförare</option>
               <option value="båda">Båda</option>
             </select>
           </div>
